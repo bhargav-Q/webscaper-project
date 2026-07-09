@@ -13,3 +13,6 @@ with open('website.html', 'r') as html_file:
        course_price=course.a.text.split()[-1]
 
        print(f'{course_name} costs {course_price}')
+
+
+# # #  THIS IS MY FIRST VERSION
