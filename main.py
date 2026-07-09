@@ -1,18 +1,8 @@
 from bs4 import BeautifulSoup
+import requests
 
-with open('website.html', 'r') as html_file:
+html_text = requests.get('https://www.timesjobs.com/job-search?cboPresFuncArea=35&refreshed=true')
+soup=BeautifulSoup(html_text,'lxml')
+jobs = soup.find_all('li',class_="p-4 md:p-6 bg-white rounded-xl mb-4 shadow-sm relative srp-card" )
 
-    # read() shows the exact code
-    content = html_file.read() # print(content)
-
-    #by using beatifulsoup we are apply lxml format to the content  
-    soup=BeautifulSoup(content, 'lxml') # print(soup)
-    course_cards=soup.find_all('div', class_="card mb-3")
-    for course in course_cards:
-       course_name=course.h3.text
-       course_price=course.a.text.split()[-1]
-
-       print(f'{course_name} costs {course_price}')
-
-
-# # #  THIS IS MY FIRST VERSION
+# # as the youtube guy said i have done the same steps here need to find a solution for the errrs in the terminal
