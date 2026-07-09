@@ -3,108 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Portfolio</title>
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            background-color: #f4f4f4;
-        }
+    <title>Learning Courses</title>
 
-        header {
-            background-color: #2563eb;
-            color: white;
-            text-align: center;
-            padding: 40px 20px;
-        }
-
-        section {
-            padding: 30px;
-        }
-
-        .cards {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        .card {
-            background: white;
-            padding: 20px;
-            width: 250px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        footer {
-            text-align: center;
-            padding: 20px;
-            background: #222;
-            color: white;
-        }
-    </style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
 
-    <header>
-        <h1>My Portfolio</h1>
-        <p>Learning HTML and building cool things.</p>
-    </header>
+<div class="container mt-3">
 
-    <section>
-        <h2>About Me</h2>
-        <p>
-            Hello! I'm a web development beginner exploring HTML, CSS,
-            and GitHub.
-        </p>
-    </section>
+    <h1 class="display-5 mb-3">Hello, Start Learning!</h1>
 
-    <section>
-        <h2>My Projects</h2>
-
-        <div class="cards">
-            <div class="card">
-                <h3>Project 1</h3>
-                <p>A simple calculator built with HTML.</p>
-            </div>
-
-            <div class="card">
-                <h3>Project 2</h3>
-                <p>A personal portfolio website.</p>
-            </div>
-
-            <div class="card">
-                <h3>Project 3</h3>
-                <p>A basic to-do list application.</p>
-            </div>
+    <div class="card mb-3">
+        <div class="card-header">
+            Python
         </div>
-    </section>
 
-    <section>
-        <h2>Skills</h2>
+        <div class="card-body">
+            <h3 class="card-title">Python for beginners</h3>
 
-        <div class="cards">
-            <div class="card">
-                <h3>HTML</h3>
-                <p>Building webpage structure.</p>
-            </div>
+            <p class="card-text">
+                Python is the course that you should buy!
+            </p>
 
-            <div class="card">
-                <h3>CSS</h3>
-                <p>Styling and layouts.</p>
-            </div>
-
-            <div class="card">
-                <h3>Git</h3>
-                <p>Version control and collaboration.</p>
-            </div>
+            <a href="#" class="btn btn-primary">
+                Start for 20$
+            </a>
         </div>
-    </section>
+    </div>
 
-    <footer>
-        <p>© 2026 My Portfolio</p>
-    </footer>
+    <div class="card mb-3">
+        <div class="card-header">
+            Python
+        </div>
+
+        <div class="card-body">
+            <h3 class="card-title">
+                Python Web Development
+            </h3>
+
+            <p class="card-text">
+                If you feel enough confident with python, you are ready
+                to learn how to create your own website!
+            </p>
+
+            <a href="#" class="btn btn-primary">
+                Start for 50$
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            Python
+        </div>
+
+        <div class="card-body">
+            <h3 class="card-title">
+                Python Machine Learning
+            </h3>
+
+            <p class="card-text">
+                Become a Python Machine Learning master!
+            </p>
+
+            <a href="#" class="btn btn-primary">
+                Start for 100$
+            </a>
+        </div>
+    </div>
+
+</div>
 
 </body>
 </html>
