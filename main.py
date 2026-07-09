@@ -12,5 +12,4 @@ with open('website.html', 'r') as html_file:
        course_name=course.h3.text
        course_price=course.a.text.split()[-1]
 
-       print(course_name)
-       print(course_price)
+       print(f'{course_name} costs {course_price}')
