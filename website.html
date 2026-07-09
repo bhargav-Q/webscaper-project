@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Portfolio</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+
+        header {
+            background-color: #2563eb;
+            color: white;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        section {
+            padding: 30px;
+        }
+
+        .cards {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            width: 250px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: #222;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>My Portfolio</h1>
+        <p>Learning HTML and building cool things.</p>
+    </header>
+
+    <section>
+        <h2>About Me</h2>
+        <p>
+            Hello! I'm a web development beginner exploring HTML, CSS,
+            and GitHub.
+        </p>
+    </section>
+
+    <section>
+        <h2>My Projects</h2>
+
+        <div class="cards">
+            <div class="card">
+                <h3>Project 1</h3>
+                <p>A simple calculator built with HTML.</p>
+            </div>
+
+            <div class="card">
+                <h3>Project 2</h3>
+                <p>A personal portfolio website.</p>
+            </div>
+
+            <div class="card">
+                <h3>Project 3</h3>
+                <p>A basic to-do list application.</p>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2>Skills</h2>
+
+        <div class="cards">
+            <div class="card">
+                <h3>HTML</h3>
+                <p>Building webpage structure.</p>
+            </div>
+
+            <div class="card">
+                <h3>CSS</h3>
+                <p>Styling and layouts.</p>
+            </div>
+
+            <div class="card">
+                <h3>Git</h3>
+                <p>Version control and collaboration.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>© 2026 My Portfolio</p>
+    </footer>
+
+</body>
+</html>
