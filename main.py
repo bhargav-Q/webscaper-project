@@ -9,4 +9,8 @@ with open('website.html', 'r') as html_file:
     soup=BeautifulSoup(content, 'lxml') # print(soup)
     course_cards=soup.find_all('div', class_="card mb-3")
     for course in course_cards:
-       print(course.h3)
+       course_name=course.h3.text
+       course_price=course.a.text.split()[-1]
+
+       print(course_name)
+       print(course_price)
