@@ -1,8 +1,31 @@
-from bs4 import BeautifulSoup
 import requests
+def get_url():
+    url=input("Enter the URL: ").strip()
+    if(url.startswith("https://")): # Consider handling both http:// and https:// URLs in a future revision.
+        return url
+    return "https://"+url 
 
-html_text = requests.get('https://www.timesjobs.com/job-search?cboPresFuncArea=35&refreshed=true')
-soup=BeautifulSoup(html_text,'lxml')
-jobs = soup.find_all('li',class_="p-4 md:p-6 bg-white rounded-xl mb-4 shadow-sm relative srp-card" )
+def fetch_page(url):
+    try:
+        response = requests.get(url)
+        return response
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching page: {e}")
+        return None
 
-# # as the youtube guy said i have done the same steps here need to find a solution for the errrs in the terminal
+def display_response_info(response):
+    print(response.status_code)
+    print(len(response.content))
+    print(response.headers)
+
+def main():
+    url = get_url()
+    response = fetch_page(url)
+    if response:
+        display_response_info(response)
+    else:
+        print("Failed to fetch page")
+
+if __name__ == "__main__":
+    main()
+    
