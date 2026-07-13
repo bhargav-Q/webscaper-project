@@ -7,9 +7,9 @@ load_dotenv()
 
 def get_url():
     url = input("Enter the URL: ").strip()
-    if(url.startswith("https://")): 
+    if url.startswith("http://") or url.startswith("https://"): 
         return url
-    return "https://"+url 
+    return "https://" + url 
 
 def fetch_page(url):
     # Fetch your exact API token from the .env file
@@ -45,5 +45,5 @@ def fetch_page(url):
         return None
         
 def display_response_info(response):
-    print(response.status_code)
-    print(len(response.content))
+    print(f'status_code: {response.status_code}')
+    print(f'content_length: {len(response.content)} bytes')
