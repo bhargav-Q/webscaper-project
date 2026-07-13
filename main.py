@@ -55,7 +55,19 @@ def classify_website(html_text):
     else:
         print("GENERAL / PORTFOLIO")
  
+def detect_dynamic_content(html_text):
+    if 'id="root"' in html_text or '__NEXT_DATA__' in html_text:
+        return "Built with React"
     
+    elif 'id="app"' in html_text or 'data-v-' in html_text:
+        return "Built with Vue"
+        
+    elif 'ng-version' in html_text:
+        return "Built with Angular"
+        
+    else:
+        return "Static or unknown framework"
+
 
 def main():
     url = get_url()
@@ -64,7 +76,8 @@ def main():
         display_response_info(response)
         report = analyse_html(response.text)
         print(report)
-        classify_website(response.text)
+        # classify_website(response.text)
+        print(detect_dynamic_content(response.text))
     else:
         print("Failed to fetch page")
 
