@@ -37,13 +37,34 @@ def analyse_html(html_text):
     
     return report
 
+def classify_website(html_text):
+    soup = BeautifulSoup(html_text, 'lxml')
+    
+    # 1. Is there an article tag? (Blog)
+    if soup.find('article'):
+        print("BLOG/NEWS")
+        
+    # 2. Are there multiple forms? (Maybe E-Commerce or Login)
+    elif len(soup.find_all('form')) >= 2:
+        print("E-COMMERCE / LOGIN PORTAL")
+        
+    # 3. Are there lots of code blocks? (Documentation)
+    elif len(soup.find_all('code')) > 5:
+        print("DOCUMENTATION")
+        
+    else:
+        print("GENERAL / PORTFOLIO")
+ 
+    
+
 def main():
     url = get_url()
     response = fetch_page(url)
-    if response:
+    if response:            
         display_response_info(response)
         report = analyse_html(response.text)
-        print(report) 
+        print(report)
+        classify_website(response.text)
     else:
         print("Failed to fetch page")
 
