@@ -57,11 +57,9 @@ def preview_website(request: PreviewRequest):
             "error": f"Failed to fetch page. Status code: {status_code}"
         }
 
-    # Cache the HTML so we don't have to fetch again during scrape
-    html_cache[url] = response.text
-
-    # Scan for sections
-    sections = scan_sections(response.text)
+    # Scan for sections and cache the annotated HTML so selected section IDs remain available
+    sections, annotated_html = scan_sections(response.text)
+    html_cache[url] = annotated_html
 
     # Detect the framework
     framework = detect_dynamic_content(response.text)

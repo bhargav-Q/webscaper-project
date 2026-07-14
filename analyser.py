@@ -23,6 +23,8 @@ def scan_sections(html_text):
             continue
 
         section_id = f"section-{section_index}"
+        tag['data-scraper-id'] = section_id
+        
         sections.append({
             "section_id": section_id,
             "tag": tag.name,
@@ -32,11 +34,21 @@ def scan_sections(html_text):
         })
         section_index += 1
 
-    # 2. If we found very few semantic tags, fall back to top-level divs
+    # 2. If we found very few semantic tags, fall back to structural divs
     if len(sections) < 3:
         body = soup.find('body')
         if body:
-            for div in body.find_all('div', recursive=False):
+            # Unwrap single-child wrappers (like <div id="root"> or <div id="__next">)
+            container = body
+            while True:
+                child_divs = container.find_all('div', recursive=False)
+                if len(child_divs) == 1:
+                    container = child_divs[0]
+                else:
+                    break
+            
+            # Now scan the children of the true layout container
+            for div in container.find_all('div', recursive=False):
                 div_id = div.get('id', '')
                 div_class = ' '.join(div.get('class', []))
                 preview_text = div.get_text(separator=' ', strip=True)[:150]
@@ -46,6 +58,8 @@ def scan_sections(html_text):
                     continue
 
                 section_id = f"section-{section_index}"
+                div['data-scraper-id'] = section_id
+                
                 sections.append({
                     "section_id": section_id,
                     "tag": "div",
@@ -55,33 +69,18 @@ def scan_sections(html_text):
                 })
                 section_index += 1
 
-    return sections
+    return sections, str(soup)
 
 
 def _find_section_element(soup, section_info):
     """
     Helper function that finds the exact HTML element matching a section preview.
-    Uses the tag name + class + id to locate the right element.
+    Uses the injected data-scraper-id to locate the right element flawlessly.
     """
-    tag = section_info.get("tag", "div")
-    class_name = section_info.get("class", "")
-    element_id = section_info.get("id", "")
-
-    # Try to find by ID first (most specific)
-    if element_id:
-        element = soup.find(tag, id=element_id)
-        if element:
-            return element
-
-    # Then try by class
-    if class_name:
-        classes = class_name.split()
-        element = soup.find(tag, class_=classes)
-        if element:
-            return element
-
-    # Fall back to finding by tag name (returns first match)
-    return soup.find(tag)
+    section_id = section_info.get("section_id")
+    if section_id:
+        return soup.find(attrs={"data-scraper-id": section_id})
+    return None
 
 
 def analyse_html(html_text, selected_sections=None):
