@@ -1,9 +1,14 @@
-.vscode/
-website.html
+# Security
 .env
+
+# Python
+.venv/
+venv/
 __pycache__/
+*.pyc
+
+# IDEs & Tools
+.vscode/
+.idea/
 .postman/
 postman/
-.idea/
-.venv
-web_unlocker1.rar

@@ -1,0 +1,87 @@
+import React, { useState } from 'react';
+import { ArrowLeft, Check, Layers, Loader2 } from 'lucide-react';
+
+export default function PreviewCards({ url, sections, onExtract, onBack, loading }) {
+  const [selectedIds, setSelectedIds] = useState([]);
+
+  const toggleSection = (sectionInfo) => {
+    const isSelected = selectedIds.some(s => s.section_id === sectionInfo.section_id);
+    if (isSelected) {
+      setSelectedIds(selectedIds.filter(s => s.section_id !== sectionInfo.section_id));
+    } else {
+      setSelectedIds([...selectedIds, sectionInfo]);
+    }
+  };
+
+  const handleExtract = () => {
+    // If none selected, we extract full page
+    onExtract(selectedIds.length > 0 ? selectedIds : null);
+  };
+
+  return (
+    <div className="animate-fade-in" style={{ paddingBottom: '100px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-md)' }}>
+        <button className="btn-secondary" onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <ArrowLeft size={18} /> Back
+        </button>
+        <div>
+          <h2 style={{ fontSize: '1.5rem', marginBottom: '4px' }}>Target Identification</h2>
+          <p style={{ color: 'var(--muted-platinum)', fontSize: '0.9rem' }}>Analyzing: {url}</p>
+        </div>
+        <div style={{ width: '100px' }}></div> {/* Spacer for center alignment */}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'var(--space-sm)' }}>
+        {sections.map((sec) => (
+          <div 
+            key={sec.section_id} 
+            className="glass-card" 
+            style={{ 
+              cursor: 'pointer',
+              borderColor: selectedIds.some(s => s.section_id === sec.section_id) ? 'var(--quantum-cyan)' : undefined,
+              boxShadow: selectedIds.some(s => s.section_id === sec.section_id) ? '0 0 15px rgba(6,182,212,0.3)' : undefined
+            }}
+            onClick={() => toggleSection(sec)}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Layers size={18} color="var(--quantum-cyan)" />
+                <strong style={{ color: 'var(--starlight-white)', textTransform: 'uppercase', letterSpacing: '1px', fontSize: '0.8rem' }}>
+                  {sec.tag} {sec.class ? `.${sec.class.split(' ')[0]}` : ''}
+                </strong>
+              </div>
+              <input 
+                type="checkbox" 
+                className="custom-checkbox"
+                checked={selectedIds.some(s => s.section_id === sec.section_id)}
+                readOnly
+              />
+            </div>
+            <p style={{ fontSize: '0.85rem', color: 'var(--muted-platinum)', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+              {sec.preview}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {sections.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '60px', color: 'var(--muted-platinum)' }}>
+          <p>No clear semantic sections detected. The page might be empty or blocking access.</p>
+        </div>
+      )}
+
+      {/* Floating Action Button */}
+      <div style={{ position: 'fixed', bottom: '40px', left: '50%', transform: 'translateX(-50%)', zIndex: 100 }}>
+        <button 
+          className="btn-primary" 
+          onClick={handleExtract}
+          disabled={loading}
+          style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px 32px', fontSize: '1.1rem', boxShadow: '0 8px 32px rgba(16,185,129,0.3)' }}
+        >
+          {loading ? <Loader2 className="lucide-spin" size={24} /> : <Check size={24} />}
+          {loading ? 'Extracting...' : `Extract ${selectedIds.length > 0 ? selectedIds.length + ' Selected Sections' : 'Full Page'}`}
+        </button>
+      </div>
+    </div>
+  );
+}

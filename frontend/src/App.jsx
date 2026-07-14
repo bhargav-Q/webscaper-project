@@ -1,0 +1,101 @@
+import React, { useState } from 'react';
+import HeroSection from './components/HeroSection';
+import PreviewCards from './components/PreviewCards';
+import ResultsDashboard from './components/ResultsDashboard';
+import './App.css';
+
+function App() {
+  const [appState, setAppState] = useState('HERO'); // HERO, PREVIEW, RESULTS
+  const [url, setUrl] = useState('');
+  const [sections, setSections] = useState([]);
+  const [report, setReport] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleAnalyze = async (inputUrl) => {
+    setUrl(inputUrl);
+    setLoading(true);
+    try {
+      const response = await fetch('http://localhost:8000/api/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: inputUrl })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setSections(data.sections);
+        setAppState('PREVIEW');
+      } else {
+        alert("Error: " + data.error);
+      }
+    } catch (err) {
+      alert("Failed to connect to backend.");
+    }
+    setLoading(false);
+  };
+
+  const handleExtract = async (selectedSections) => {
+    setLoading(true);
+    try {
+      const response = await fetch('http://localhost:8000/api/scrape', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          url: url,
+          selected_sections: selectedSections 
+        })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setReport(data.report);
+        setAppState('RESULTS');
+      } else {
+        alert("Error: " + data.error);
+      }
+    } catch (err) {
+      alert("Failed to connect to backend.");
+    }
+    setLoading(false);
+  };
+
+  const resetFlow = () => {
+    setAppState('HERO');
+    setUrl('');
+    setSections([]);
+    setReport(null);
+  };
+
+  return (
+    <>
+      <div className="ambient-bg"></div>
+      <div className="ambient-glow"></div>
+      
+      <main className="container animate-fade-in" style={{ padding: '40px 0' }}>
+        {appState === 'HERO' && (
+          <HeroSection 
+            onAnalyze={handleAnalyze} 
+            loading={loading} 
+          />
+        )}
+        
+        {appState === 'PREVIEW' && (
+          <PreviewCards 
+            url={url} 
+            sections={sections} 
+            onExtract={handleExtract} 
+            onBack={resetFlow} 
+            loading={loading} 
+          />
+        )}
+        
+        {appState === 'RESULTS' && (
+          <ResultsDashboard 
+            report={report} 
+            onNewScrape={resetFlow} 
+          />
+        )}
+      </main>
+    </>
+  );
+}
+
+export default App;
