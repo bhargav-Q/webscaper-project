@@ -2,3 +2,7 @@
 website.html
 .env
 __pycache__/
+.postman/
+.idea/
+.venv
+web_unlocker1.rar

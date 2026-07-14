@@ -26,7 +26,7 @@ def fetch_page(url):
 
     # 3. The Payload (telling them what to scrape)
     payload = {
-        "zone": "web_unlocker1", # This must match the zone name in your screenshot exactly
+        "zone": "web_unlocker1",
         "url": url,
         "format": "raw"
     }
@@ -37,7 +37,7 @@ def fetch_page(url):
             api_url, 
             headers=headers, 
             json=payload, 
-            timeout=30 # Web unlocker can take time to solve CAPTCHAs
+            timeout=60  # JS rendering can take 30-60 seconds
         )
         return response
     except requests.exceptions.RequestException as e:
