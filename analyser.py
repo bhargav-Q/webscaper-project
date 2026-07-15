@@ -1,9 +1,15 @@
 import re
 from bs4 import BeautifulSoup
-
+from urllib.parse import urljoin
+from utils import DOMAnalyzer, EntityDetector
 
 # The structural tags that define major "sections" of a webpage
-SECTION_TAGS = ['header', 'nav', 'main', 'section', 'article', 'aside', 'footer']
+SECTION_TAGS = ['header', 'nav', 'main', 'section', 'article', 'aside', 'footer', 'table']
+
+def get_dom_stats(html_text):
+    soup = BeautifulSoup(html_text, 'lxml')
+    analyzer = DOMAnalyzer(soup)
+    return analyzer.get_stats()
 
 
 def scan_sections(html_text):
@@ -34,40 +40,26 @@ def scan_sections(html_text):
         })
         section_index += 1
 
-    # 2. If we found very few semantic tags, fall back to structural divs
-    if len(sections) < 3:
-        body = soup.find('body')
-        if body:
-            # Unwrap single-child wrappers (like <div id="root"> or <div id="__next">)
-            container = body
-            while True:
-                child_divs = container.find_all('div', recursive=False)
-                if len(child_divs) == 1:
-                    container = child_divs[0]
-                else:
-                    break
+    # 2. Structural Grid Detection (DOM Signature Hashing) using DOMAnalyzer
+    analyzer = DOMAnalyzer(soup)
+    grid_nodes = analyzer.find_grids()
+    
+    for tag in grid_nodes:
+        if 'data-scraper-id' in tag.attrs:
+            continue # Already added
             
-            # Now scan the children of the true layout container
-            for div in container.find_all('div', recursive=False):
-                div_id = div.get('id', '')
-                div_class = ' '.join(div.get('class', []))
-                preview_text = div.get_text(separator=' ', strip=True)[:150]
-
-                # Skip empty or tiny divs
-                if not preview_text or len(preview_text) < 20:
-                    continue
-
-                section_id = f"section-{section_index}"
-                div['data-scraper-id'] = section_id
-                
-                sections.append({
-                    "section_id": section_id,
-                    "tag": "div",
-                    "class": div_class,
-                    "id": div_id,
-                    "preview": preview_text
-                })
-                section_index += 1
+        preview_text = tag.get_text(separator=' ', strip=True)[:150]
+        section_id = f"section-{section_index}"
+        tag['data-scraper-id'] = section_id
+        
+        sections.append({
+            "section_id": section_id,
+            "tag": tag.name,
+            "class": ' '.join(tag.get('class', [])),
+            "id": tag.get('id', ''),
+            "preview": preview_text
+        })
+        section_index += 1
 
     return sections, str(soup)
 
@@ -83,11 +75,10 @@ def _find_section_element(soup, section_info):
     return None
 
 
-def analyse_html(html_text, selected_sections=None):
+def analyse_html(base_url, html_text, selected_sections=None):
     """
     Step 2 of the Two-Step Flow.
-    Extracts data from the HTML. If selected_sections is provided,
-    only extracts from those specific sections. Otherwise, extracts from the full page.
+    Extracts data in a Relational (Grouped) format based on selected sections.
     """
     soup = BeautifulSoup(html_text, 'lxml')
 
@@ -103,60 +94,46 @@ def analyse_html(html_text, selected_sections=None):
             if element:
                 search_targets.append(element)
     else:
-        # No sections selected — search the entire page
-        search_targets = [soup]
+        # If no sections selected, try to find articles, otherwise just use the body
+        search_targets = soup.find_all('article')
+        if not search_targets:
+            search_targets = [soup.find('body') or soup]
 
-    # Extract data from the target elements
-    headings = []
-    links = []
-    images = []
-    paragraphs = []
+    # Extract relational records from the target elements
+    records = []
+    detector = EntityDetector(base_url)
 
     for target in search_targets:
-        # Headings
-        for tag in target.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6']):
-            text = tag.get_text(strip=True)
-            if text:
-                headings.append({"level": tag.name, "text": text})
+        # If the target is a table, use Tabular Data Extraction
+        if target.name == 'table':
+            headers = [th.get_text(strip=True) for th in target.find_all('th')]
+            for tr in target.find_all('tr'):
+                cells = tr.find_all(['td', 'th'])
+                # Skip header-only rows
+                if not cells or all(c.name == 'th' for c in cells): 
+                    continue 
+                
+                record = {}
+                for i, cell in enumerate(cells):
+                    key = headers[i] if i < len(headers) and headers[i] else f"Column {i+1}"
+                    record[key] = cell.get_text(strip=True)
+                
+                if any(record.values()):
+                    records.append(record)
+            continue
 
-        # Links
-        for a_tag in target.find_all('a', href=True):
-            text = a_tag.get_text(strip=True)
-            href = a_tag['href']
-            if href and not href.startswith('#'):
-                links.append({"text": text or "(no text)", "url": href})
-
-        # Images
-        for img_tag in target.find_all('img'):
-            src = img_tag.get('src', '')
-            alt = img_tag.get('alt', '')
-            if src:
-                images.append({"src": src, "alt": alt})
-
-        # Paragraphs
-        for p_tag in target.find_all('p'):
-            text = p_tag.get_text(strip=True)
-            if text:
-                paragraphs.append(text)
-
-    # Emails (always search full page since they can be anywhere)
-    emails = list(set(re.findall(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', html_text)))
+        # Otherwise, use EntityDetector for universal extraction
+        record = detector.extract_entities(target)
+        if any(record.values()):
+            records.append(record)
 
     report = {
         "title": title,
         "summary": {
-            "headings": len(headings),
-            "links": len(links),
-            "images": len(images),
-            "paragraphs": len(paragraphs),
-            "emails": len(emails),
+            "total_records": len(records)
         },
         "data": {
-            "headings": headings,
-            "links": links,
-            "images": images,
-            "paragraphs": paragraphs,
-            "emails": emails
+            "records": records
         }
     }
 

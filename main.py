@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
 from fetcher import fetch_page
-from analyser import analyse_html, detect_dynamic_content, scan_sections
+from analyser import analyse_html, detect_dynamic_content, scan_sections, get_dom_stats
 
 # Create the FastAPI application
 app = FastAPI(title="Web Scraper API", version="2.0.0")
@@ -68,13 +68,17 @@ def preview_website(request: PreviewRequest):
     from bs4 import BeautifulSoup
     soup = BeautifulSoup(response.text, 'lxml')
     title = soup.title.text.strip() if soup.title else "No Title"
+    
+    # Get DOM stats
+    dom_stats = get_dom_stats(response.text)
 
     return {
         "success": True,
         "url": url,
         "title": title,
         "framework": framework,
-        "sections": sections
+        "sections": sections,
+        "dom_stats": dom_stats
     }
 
 
@@ -101,7 +105,7 @@ def scrape_website(request: ScrapeRequest):
         html_text = response.text
 
     # Extract data from selected sections (or full page if none selected)
-    report = analyse_html(html_text, request.selected_sections)
+    report = analyse_html(url, html_text, request.selected_sections)
 
     # Detect framework
     framework = detect_dynamic_content(html_text)

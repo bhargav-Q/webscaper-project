@@ -39,6 +39,7 @@ def fetch_page(url):
             json=payload, 
             timeout=60  # JS rendering can take 30-60 seconds
         )
+        response.encoding = 'utf-8' # Force utf-8 encoding to fix £ symbol errors
         return response
     except requests.exceptions.RequestException as e:
         print(f"Error fetching page: {e}")

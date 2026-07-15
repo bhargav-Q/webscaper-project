@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Check, Layers, Loader2 } from 'lucide-react';
 
-export default function PreviewCards({ url, sections, onExtract, onBack, loading }) {
+export default function PreviewCards({ url, sections, domStats, onExtract, onBack, loading }) {
   const [selectedIds, setSelectedIds] = useState([]);
 
   const toggleSection = (sectionInfo) => {
@@ -29,6 +29,44 @@ export default function PreviewCards({ url, sections, onExtract, onBack, loading
           <p style={{ color: 'var(--muted-platinum)', fontSize: '0.9rem' }}>Analyzing: {url}</p>
         </div>
         <div style={{ width: '100px' }}></div> {/* Spacer for center alignment */}
+      </div>
+
+      {domStats && (
+        <div className="glass-card" style={{ marginBottom: '24px', padding: '16px', display: 'flex', gap: '24px', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <div style={{ textAlign: 'center' }}><strong style={{ color: 'var(--quantum-cyan)', fontSize: '1.2rem' }}>{domStats.articles}</strong><div style={{ fontSize: '0.8rem', color: 'var(--muted-platinum)', textTransform: 'uppercase' }}>Articles</div></div>
+          <div style={{ textAlign: 'center' }}><strong style={{ color: 'var(--quantum-cyan)', fontSize: '1.2rem' }}>{domStats.cards}</strong><div style={{ fontSize: '0.8rem', color: 'var(--muted-platinum)', textTransform: 'uppercase' }}>Cards</div></div>
+          <div style={{ textAlign: 'center' }}><strong style={{ color: 'var(--quantum-cyan)', fontSize: '1.2rem' }}>{domStats.images}</strong><div style={{ fontSize: '0.8rem', color: 'var(--muted-platinum)', textTransform: 'uppercase' }}>Images</div></div>
+          <div style={{ textAlign: 'center' }}><strong style={{ color: 'var(--quantum-cyan)', fontSize: '1.2rem' }}>{domStats.links}</strong><div style={{ fontSize: '0.8rem', color: 'var(--muted-platinum)', textTransform: 'uppercase' }}>Links</div></div>
+          <div style={{ textAlign: 'center' }}><strong style={{ color: 'var(--quantum-cyan)', fontSize: '1.2rem' }}>{domStats.tables}</strong><div style={{ fontSize: '0.8rem', color: 'var(--muted-platinum)', textTransform: 'uppercase' }}>Tables</div></div>
+          <div style={{ textAlign: 'center' }}><strong style={{ color: 'var(--quantum-cyan)', fontSize: '1.2rem' }}>{domStats.forms}</strong><div style={{ fontSize: '0.8rem', color: 'var(--muted-platinum)', textTransform: 'uppercase' }}>Forms</div></div>
+        </div>
+      )}
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+        <button 
+          onClick={() => {
+            if (selectedIds.length === sections.length && sections.length > 0) {
+              setSelectedIds([]);
+            } else {
+              setSelectedIds(sections);
+            }
+          }}
+          style={{
+            background: 'rgba(6, 182, 212, 0.1)',
+            border: '1px solid var(--quantum-cyan)',
+            color: 'var(--quantum-cyan)',
+            padding: '8px 16px',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontSize: '0.9rem',
+            fontWeight: 'bold',
+            transition: 'all 0.2s'
+          }}
+          onMouseOver={(e) => e.currentTarget.style.background = 'rgba(6, 182, 212, 0.2)'}
+          onMouseOut={(e) => e.currentTarget.style.background = 'rgba(6, 182, 212, 0.1)'}
+        >
+          {selectedIds.length === sections.length && sections.length > 0 ? 'Deselect All' : 'Select All'}
+        </button>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'var(--space-sm)' }}>

@@ -8,6 +8,7 @@ function App() {
   const [appState, setAppState] = useState('HERO'); // HERO, PREVIEW, RESULTS
   const [url, setUrl] = useState('');
   const [sections, setSections] = useState([]);
+  const [domStats, setDomStats] = useState(null);
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -23,6 +24,7 @@ function App() {
       const data = await response.json();
       if (data.success) {
         setSections(data.sections);
+        setDomStats(data.dom_stats);
         setAppState('PREVIEW');
       } else {
         alert("Error: " + data.error);
@@ -61,6 +63,7 @@ function App() {
     setAppState('HERO');
     setUrl('');
     setSections([]);
+    setDomStats(null);
     setReport(null);
   };
 
@@ -81,6 +84,7 @@ function App() {
           <PreviewCards 
             url={url} 
             sections={sections} 
+            domStats={domStats}
             onExtract={handleExtract} 
             onBack={resetFlow} 
             loading={loading} 

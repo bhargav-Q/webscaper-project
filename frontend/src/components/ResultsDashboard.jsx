@@ -1,48 +1,57 @@
-import React, { useState } from 'react';
-import { Download, RefreshCw, CheckCircle2, Link, FileText, Image as ImageIcon } from 'lucide-react';
+import React from 'react';
+import { Download, RefreshCw, Layers } from 'lucide-react';
 
 export default function ResultsDashboard({ report, onNewScrape }) {
-  const [activeTab, setActiveTab] = useState('headings');
-
   const { title, summary, data } = report;
+  const records = data.records || [];
+
+  const allKeysSet = new Set();
+  records.forEach(r => Object.keys(r).forEach(k => allKeysSet.add(k)));
+  const standardOrder = ["Title", "Price", "Metadata", "Text", "Link", "Image"];
+  const displayKeys = Array.from(allKeysSet).sort((a, b) => {
+      const idxA = standardOrder.indexOf(a);
+      const idxB = standardOrder.indexOf(b);
+      if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+      if (idxA !== -1) return -1;
+      if (idxB !== -1) return 1;
+      return a.localeCompare(b);
+  });
 
   const downloadCSV = () => {
-    // Basic CSV download logic for the currently active tab
-    const items = data[activeTab];
-    if (!items || items.length === 0) return;
-
-    let csvContent = "data:text/csv;charset=utf-8,";
+    if (records.length === 0) return;
     
-    // Header row
-    const keys = typeof items[0] === 'string' ? ['value'] : Object.keys(items[0]);
-    csvContent += keys.join(",") + "\n";
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += displayKeys.join(",") + "\n";
 
-    // Data rows
-    items.forEach(item => {
-      if (typeof item === 'string') {
-        csvContent += `"${item.replace(/"/g, '""')}"\n`;
-      } else {
-        const row = keys.map(k => `"${(item[k] || '').replace(/"/g, '""')}"`);
-        csvContent += row.join(",") + "\n";
-      }
+    records.forEach(item => {
+      const row = displayKeys.map(k => {
+        const val = item[k] || '';
+        // Escape quotes by doubling them, wrap field in quotes
+        return `"${String(val).replace(/"/g, '""')}"`;
+      });
+      csvContent += row.join(",") + "\n";
     });
 
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `quantana_${activeTab}_extract.csv`);
+    link.setAttribute("download", `quantana_extract.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  const tabs = [
-    { id: 'headings', label: 'Headings', icon: <FileText size={16} />, count: summary.headings },
-    { id: 'links', label: 'Links', icon: <Link size={16} />, count: summary.links },
-    { id: 'images', label: 'Images', icon: <ImageIcon size={16} />, count: summary.images },
-    { id: 'paragraphs', label: 'Paragraphs', icon: <FileText size={16} />, count: summary.paragraphs },
-    { id: 'emails', label: 'Emails', icon: <CheckCircle2 size={16} />, count: summary.emails },
-  ];
+  const downloadJSON = () => {
+    if (records.length === 0) return;
+    const jsonStr = JSON.stringify(records, null, 2);
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(jsonStr);
+    const link = document.createElement("a");
+    link.setAttribute("href", dataStr);
+    link.setAttribute("download", `quantana_extract.json`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <div className="animate-fade-in">
@@ -55,80 +64,56 @@ export default function ResultsDashboard({ report, onNewScrape }) {
           <button className="btn-secondary" onClick={onNewScrape} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <RefreshCw size={18} /> New Scrape
           </button>
+          <button className="btn-secondary" onClick={downloadJSON} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--electric-teal)', borderColor: 'var(--electric-teal)' }}>
+            <Download size={18} /> JSON
+          </button>
           <button className="btn-primary" onClick={downloadCSV} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Download size={18} /> Export {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+            <Download size={18} /> Export CSV
           </button>
         </div>
       </div>
 
       <div className="glass-card" style={{ marginBottom: 'var(--space-lg)' }}>
-        {/* Tabs */}
-        <div style={{ display: 'flex', borderBottom: '1px solid rgba(148, 163, 184, 0.2)', marginBottom: 'var(--space-md)' }}>
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              style={{
-                background: 'none',
-                border: 'none',
-                padding: '12px 24px',
-                color: activeTab === tab.id ? 'var(--electric-teal)' : 'var(--muted-platinum)',
-                borderBottom: activeTab === tab.id ? '2px solid var(--electric-teal)' : '2px solid transparent',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                fontFamily: 'var(--font-body)',
-                fontWeight: activeTab === tab.id ? 600 : 400,
-                transition: 'all 0.2s'
-              }}
-            >
-              {tab.icon} {tab.label} <span style={{ background: activeTab === tab.id ? 'rgba(16, 185, 129, 0.2)' : 'rgba(148, 163, 184, 0.1)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.8rem' }}>{tab.count}</span>
-            </button>
-          ))}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px 24px', borderBottom: '1px solid rgba(148, 163, 184, 0.2)' }}>
+          <Layers color="var(--quantum-cyan)" size={24} />
+          <h3 style={{ margin: 0 }}>Extracted Records <span style={{ background: 'rgba(16, 185, 129, 0.2)', color: 'var(--electric-teal)', padding: '4px 12px', borderRadius: '12px', fontSize: '0.9rem', marginLeft: '12px' }}>{summary.total_records} items</span></h3>
         </div>
 
-        {/* Table Content */}
         <div className="data-table-container">
           <table className="data-table">
             <thead>
               <tr>
-                {activeTab === 'headings' && (
-                  <><th>Level</th><th>Text</th></>
-                )}
-                {activeTab === 'links' && (
-                  <><th>Text</th><th>URL</th></>
-                )}
-                {activeTab === 'images' && (
-                  <><th>Source</th><th>Alt Text</th></>
-                )}
-                {(activeTab === 'paragraphs' || activeTab === 'emails') && (
-                  <th>Value</th>
-                )}
+                {displayKeys.map(k => (
+                  <th key={k} style={{ textTransform: 'capitalize' }}>{k}</th>
+                ))}
               </tr>
             </thead>
             <tbody>
-              {data[activeTab]?.length > 0 ? (
-                data[activeTab].map((item, i) => (
+              {records.length > 0 ? (
+                records.map((item, i) => (
                   <tr key={i}>
-                    {activeTab === 'headings' && (
-                      <><td style={{ width: '80px', color: 'var(--electric-teal)' }}>{item.level}</td><td>{item.text}</td></>
-                    )}
-                    {activeTab === 'links' && (
-                      <><td style={{ maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.text}</td>
-                      <td><a href={item.url} target="_blank" rel="noreferrer" style={{ color: 'var(--quantum-cyan)' }}>{item.url}</a></td></>
-                    )}
-                    {activeTab === 'images' && (
-                      <><td style={{ maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.src}</td><td>{item.alt}</td></>
-                    )}
-                    {(activeTab === 'paragraphs' || activeTab === 'emails') && (
-                      <td>{item}</td>
-                    )}
+                    {displayKeys.map(k => {
+                      const val = item[k];
+                      if (!val) return <td key={k} style={{ color: 'var(--muted-platinum)' }}>-</td>;
+                      
+                      if (k === 'Title' || k === 'Price') return <td key={k} style={{ color: 'var(--electric-teal)', fontWeight: 500 }}>{val}</td>;
+                      if (k === 'Metadata') return <td key={k} style={{ color: 'var(--starlight-white)', fontWeight: 'bold' }}>{val}</td>;
+                      if (k === 'Link') return <td key={k} style={{ maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}><a href={val} target="_blank" rel="noreferrer" style={{ color: 'var(--quantum-cyan)' }}>{val}</a></td>;
+                      if (k === 'Image') return <td key={k} style={{ maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--muted-platinum)' }}>{val}</td>;
+                      
+                      return (
+                        <td key={k} style={{ fontSize: '0.9rem', lineHeight: '1.4', maxWidth: '300px' }}>
+                          <div style={{ maxHeight: '100px', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
+                            {val}
+                          </div>
+                        </td>
+                      );
+                    })}
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={2} style={{ textAlign: 'center', padding: '32px', color: 'var(--muted-platinum)' }}>No data extracted for this category.</td>
+                  <td colSpan={displayKeys.length || 1} style={{ textAlign: 'center', padding: '32px', color: 'var(--muted-platinum)' }}>No data extracted.</td>
                 </tr>
               )}
             </tbody>
