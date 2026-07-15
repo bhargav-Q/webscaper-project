@@ -3,6 +3,15 @@ import { ArrowLeft, Check, Layers, Loader2 } from 'lucide-react';
 
 export default function PreviewCards({ url, sections, domStats, onExtract, onBack, loading }) {
   const [selectedIds, setSelectedIds] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredSections = sections.filter(sec => {
+    const term = searchTerm.toLowerCase();
+    const tagMatch = sec.tag?.toLowerCase().includes(term);
+    const classMatch = sec.class?.toLowerCase().includes(term);
+    const previewMatch = sec.preview?.toLowerCase().includes(term);
+    return tagMatch || classMatch || previewMatch;
+  });
 
   const toggleSection = (sectionInfo) => {
     const isSelected = selectedIds.some(s => s.section_id === sectionInfo.section_id);
@@ -42,13 +51,42 @@ export default function PreviewCards({ url, sections, domStats, onExtract, onBac
         </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <input 
+          type="text" 
+          placeholder="Search targets..." 
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '6px',
+            border: '1px solid rgba(148, 163, 184, 0.3)',
+            background: 'rgba(15, 23, 42, 0.4)',
+            color: 'var(--starlight-white)',
+            width: '300px',
+            fontSize: '0.95rem',
+            outline: 'none'
+          }}
+          onFocus={(e) => e.target.style.borderColor = 'var(--quantum-cyan)'}
+          onBlur={(e) => e.target.style.borderColor = 'rgba(148, 163, 184, 0.3)'}
+        />
         <button 
           onClick={() => {
-            if (selectedIds.length === sections.length && sections.length > 0) {
-              setSelectedIds([]);
+            const filteredIds = filteredSections.map(s => s.section_id);
+            const allFilteredSelected = filteredIds.every(id => selectedIds.some(s => s.section_id === id));
+            
+            if (allFilteredSelected && filteredSections.length > 0) {
+              // Deselect the filtered ones
+              setSelectedIds(selectedIds.filter(s => !filteredIds.includes(s.section_id)));
             } else {
-              setSelectedIds(sections);
+              // Select the filtered ones
+              const newSelected = [...selectedIds];
+              filteredSections.forEach(sec => {
+                if (!newSelected.some(s => s.section_id === sec.section_id)) {
+                  newSelected.push(sec);
+                }
+              });
+              setSelectedIds(newSelected);
             }
           }}
           style={{
@@ -65,12 +103,16 @@ export default function PreviewCards({ url, sections, domStats, onExtract, onBac
           onMouseOver={(e) => e.currentTarget.style.background = 'rgba(6, 182, 212, 0.2)'}
           onMouseOut={(e) => e.currentTarget.style.background = 'rgba(6, 182, 212, 0.1)'}
         >
-          {selectedIds.length === sections.length && sections.length > 0 ? 'Deselect All' : 'Select All'}
+          {(() => {
+            const filteredIds = filteredSections.map(s => s.section_id);
+            const allFilteredSelected = filteredIds.every(id => selectedIds.some(s => s.section_id === id));
+            return allFilteredSelected && filteredSections.length > 0 ? 'Deselect All' : 'Select All';
+          })()}
         </button>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'var(--space-sm)' }}>
-        {sections.map((sec) => (
+        {filteredSections.map((sec) => (
           <div 
             key={sec.section_id} 
             className="glass-card" 
