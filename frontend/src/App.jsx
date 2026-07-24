@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import HeroSection from './components/HeroSection';
 import PreviewCards from './components/PreviewCards';
 import ResultsDashboard from './components/ResultsDashboard';
+import { APP_STATES } from './constants/appConstants';
+import { STRINGS } from './constants/strings';
+import { previewWebsite, scrapeWebsite } from './api/scraperService';
 import './App.css';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
 function App() {
-  const [appState, setAppState] = useState('HERO'); // HERO, PREVIEW, RESULTS
+  const [appState, setAppState] = useState(APP_STATES.HERO);
   const [url, setUrl] = useState('');
   const [sections, setSections] = useState([]);
   const [domStats, setDomStats] = useState(null);
@@ -18,21 +19,17 @@ function App() {
     setUrl(inputUrl);
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/preview`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: inputUrl })
-      });
-      const data = await response.json();
+      const data = await previewWebsite(inputUrl);
       if (data.success) {
         setSections(data.sections);
         setDomStats(data.dom_stats);
-        setAppState('PREVIEW');
+        setAppState(APP_STATES.PREVIEW);
       } else {
-        alert("Error: " + data.error);
+        alert(STRINGS.ALERTS.ERROR_PREFIX + data.error);
       }
     } catch (err) {
-      alert("Failed to connect to backend.");
+      console.error(err);
+      alert(STRINGS.ALERTS.NETWORK_ERROR);
     }
     setLoading(false);
   };
@@ -40,29 +37,22 @@ function App() {
   const handleExtract = async (selectedSections) => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/scrape`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          url: url,
-          selected_sections: selectedSections 
-        })
-      });
-      const data = await response.json();
+      const data = await scrapeWebsite(url, selectedSections);
       if (data.success) {
         setReport(data.report);
-        setAppState('RESULTS');
+        setAppState(APP_STATES.RESULTS);
       } else {
-        alert("Error: " + data.error);
+        alert(STRINGS.ALERTS.ERROR_PREFIX + data.error);
       }
     } catch (err) {
-      alert("Failed to connect to backend.");
+      console.error(err);
+      alert(STRINGS.ALERTS.NETWORK_ERROR);
     }
     setLoading(false);
   };
 
   const resetFlow = () => {
-    setAppState('HERO');
+    setAppState(APP_STATES.HERO);
     setUrl('');
     setSections([]);
     setDomStats(null);
@@ -75,14 +65,14 @@ function App() {
       <div className="ambient-glow"></div>
       
       <main className="container animate-fade-in" style={{ padding: '40px 0' }}>
-        {appState === 'HERO' && (
+        {appState === APP_STATES.HERO && (
           <HeroSection 
             onAnalyze={handleAnalyze} 
             loading={loading} 
           />
         )}
         
-        {appState === 'PREVIEW' && (
+        {appState === APP_STATES.PREVIEW && (
           <PreviewCards 
             url={url} 
             sections={sections} 
@@ -93,7 +83,7 @@ function App() {
           />
         )}
         
-        {appState === 'RESULTS' && (
+        {appState === APP_STATES.RESULTS && (
           <ResultsDashboard 
             report={report} 
             onNewScrape={resetFlow} 
@@ -105,3 +95,4 @@ function App() {
 }
 
 export default App;
+

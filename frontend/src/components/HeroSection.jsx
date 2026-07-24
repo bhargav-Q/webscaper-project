@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Loader2, Sparkles } from 'lucide-react';
+import { STRINGS } from '../constants/strings';
 
 export default function HeroSection({ onAnalyze, loading }) {
   const [url, setUrl] = useState('');
@@ -13,13 +14,12 @@ export default function HeroSection({ onAnalyze, loading }) {
     <div className="hero-container animate-fade-in">
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
         <Sparkles color="var(--quantum-cyan)" size={32} />
-        <h2 style={{ color: 'var(--quantum-cyan)', letterSpacing: '2px', textTransform: 'uppercase', fontSize: '1rem' }}>Quantana System</h2>
+        <h2 style={{ color: 'var(--quantum-cyan)', letterSpacing: '2px', textTransform: 'uppercase', fontSize: '1rem' }}>{STRINGS.HERO.SYSTEM_TAG}</h2>
       </div>
       
-      <h1 className="hero-title">Enterprise Web Extraction</h1>
+      <h1 className="hero-title">{STRINGS.HERO.TITLE}</h1>
       <p className="hero-subtitle">
-        Your Enterprise Doesn't Need More SaaS. It Needs AI Agents That Actually Work.
-        Enter a URL below to initialize the extraction protocol.
+        {STRINGS.HERO.SUBTITLE}
       </p>
 
       <form onSubmit={handleSubmit} className="hero-input-group">
@@ -28,7 +28,7 @@ export default function HeroSection({ onAnalyze, loading }) {
           <input 
             type="text" 
             className="hero-input" 
-            placeholder="https://example.com"
+            placeholder={STRINGS.HERO.INPUT_PLACEHOLDER}
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             style={{ paddingLeft: '56px', width: '100%', boxSizing: 'border-box' }}
@@ -38,13 +38,14 @@ export default function HeroSection({ onAnalyze, loading }) {
         <button type="submit" className="btn-primary" disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {loading ? (
             <>
-              <Loader2 className="lucide-spin" size={20} /> Analyzing...
+              <Loader2 className="lucide-spin" size={20} /> {STRINGS.HERO.BUTTON_ANALYZING}
             </>
           ) : (
-            'Analyze URL'
+            STRINGS.HERO.BUTTON_ANALYZE
           )}
         </button>
       </form>
     </div>
   );
 }
+

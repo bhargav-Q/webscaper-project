@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Check, Layers, Loader2 } from 'lucide-react';
+import { STRINGS } from '../constants/strings';
 
 export default function PreviewCards({ url, sections, domStats, onExtract, onBack, loading }) {
   const [selectedIds, setSelectedIds] = useState([]);
@@ -31,30 +32,30 @@ export default function PreviewCards({ url, sections, domStats, onExtract, onBac
     <div className="animate-fade-in" style={{ paddingBottom: '100px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-md)' }}>
         <button className="btn-secondary" onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <ArrowLeft size={18} /> Back
+          <ArrowLeft size={18} /> {STRINGS.PREVIEW.BACK_BUTTON}
         </button>
         <div>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '4px' }}>Target Identification</h2>
-          <p style={{ color: 'var(--muted-platinum)', fontSize: '0.9rem' }}>Analyzing: {url}</p>
+          <h2 style={{ fontSize: '1.5rem', marginBottom: '4px' }}>{STRINGS.PREVIEW.HEADER_TITLE}</h2>
+          <p style={{ color: 'var(--muted-platinum)', fontSize: '0.9rem' }}>{STRINGS.PREVIEW.ANALYZING_LABEL}{url}</p>
         </div>
         <div style={{ width: '100px' }}></div> {/* Spacer for center alignment */}
       </div>
 
       {domStats && (
         <div className="glass-card" style={{ marginBottom: '24px', padding: '16px', display: 'flex', gap: '24px', flexWrap: 'wrap', justifyContent: 'center' }}>
-          <div style={{ textAlign: 'center' }}><strong style={{ color: 'var(--quantum-cyan)', fontSize: '1.2rem' }}>{domStats.articles}</strong><div style={{ fontSize: '0.8rem', color: 'var(--muted-platinum)', textTransform: 'uppercase' }}>Articles</div></div>
-          <div style={{ textAlign: 'center' }}><strong style={{ color: 'var(--quantum-cyan)', fontSize: '1.2rem' }}>{domStats.cards}</strong><div style={{ fontSize: '0.8rem', color: 'var(--muted-platinum)', textTransform: 'uppercase' }}>Cards</div></div>
-          <div style={{ textAlign: 'center' }}><strong style={{ color: 'var(--quantum-cyan)', fontSize: '1.2rem' }}>{domStats.images}</strong><div style={{ fontSize: '0.8rem', color: 'var(--muted-platinum)', textTransform: 'uppercase' }}>Images</div></div>
-          <div style={{ textAlign: 'center' }}><strong style={{ color: 'var(--quantum-cyan)', fontSize: '1.2rem' }}>{domStats.links}</strong><div style={{ fontSize: '0.8rem', color: 'var(--muted-platinum)', textTransform: 'uppercase' }}>Links</div></div>
-          <div style={{ textAlign: 'center' }}><strong style={{ color: 'var(--quantum-cyan)', fontSize: '1.2rem' }}>{domStats.tables}</strong><div style={{ fontSize: '0.8rem', color: 'var(--muted-platinum)', textTransform: 'uppercase' }}>Tables</div></div>
-          <div style={{ textAlign: 'center' }}><strong style={{ color: 'var(--quantum-cyan)', fontSize: '1.2rem' }}>{domStats.forms}</strong><div style={{ fontSize: '0.8rem', color: 'var(--muted-platinum)', textTransform: 'uppercase' }}>Forms</div></div>
+          <div style={{ textAlign: 'center' }}><strong style={{ color: 'var(--quantum-cyan)', fontSize: '1.2rem' }}>{domStats.articles}</strong><div style={{ fontSize: '0.8rem', color: 'var(--muted-platinum)', textTransform: 'uppercase' }}>{STRINGS.PREVIEW.STATS.ARTICLES}</div></div>
+          <div style={{ textAlign: 'center' }}><strong style={{ color: 'var(--quantum-cyan)', fontSize: '1.2rem' }}>{domStats.cards}</strong><div style={{ fontSize: '0.8rem', color: 'var(--muted-platinum)', textTransform: 'uppercase' }}>{STRINGS.PREVIEW.STATS.CARDS}</div></div>
+          <div style={{ textAlign: 'center' }}><strong style={{ color: 'var(--quantum-cyan)', fontSize: '1.2rem' }}>{domStats.images}</strong><div style={{ fontSize: '0.8rem', color: 'var(--muted-platinum)', textTransform: 'uppercase' }}>{STRINGS.PREVIEW.STATS.IMAGES}</div></div>
+          <div style={{ textAlign: 'center' }}><strong style={{ color: 'var(--quantum-cyan)', fontSize: '1.2rem' }}>{domStats.links}</strong><div style={{ fontSize: '0.8rem', color: 'var(--muted-platinum)', textTransform: 'uppercase' }}>{STRINGS.PREVIEW.STATS.LINKS}</div></div>
+          <div style={{ textAlign: 'center' }}><strong style={{ color: 'var(--quantum-cyan)', fontSize: '1.2rem' }}>{domStats.tables}</strong><div style={{ fontSize: '0.8rem', color: 'var(--muted-platinum)', textTransform: 'uppercase' }}>{STRINGS.PREVIEW.STATS.TABLES}</div></div>
+          <div style={{ textAlign: 'center' }}><strong style={{ color: 'var(--quantum-cyan)', fontSize: '1.2rem' }}>{domStats.forms}</strong><div style={{ fontSize: '0.8rem', color: 'var(--muted-platinum)', textTransform: 'uppercase' }}>{STRINGS.PREVIEW.STATS.FORMS}</div></div>
         </div>
       )}
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
         <input 
           type="text" 
-          placeholder="Search targets..." 
+          placeholder={STRINGS.PREVIEW.SEARCH_PLACEHOLDER}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           style={{
@@ -106,7 +107,7 @@ export default function PreviewCards({ url, sections, domStats, onExtract, onBac
           {(() => {
             const filteredIds = filteredSections.map(s => s.section_id);
             const allFilteredSelected = filteredIds.every(id => selectedIds.some(s => s.section_id === id));
-            return allFilteredSelected && filteredSections.length > 0 ? 'Deselect All' : 'Select All';
+            return allFilteredSelected && filteredSections.length > 0 ? STRINGS.PREVIEW.DESELECT_ALL : STRINGS.PREVIEW.SELECT_ALL;
           })()}
         </button>
       </div>
@@ -146,7 +147,7 @@ export default function PreviewCards({ url, sections, domStats, onExtract, onBac
 
       {sections.length === 0 && (
         <div style={{ textAlign: 'center', padding: '60px', color: 'var(--muted-platinum)' }}>
-          <p>No clear semantic sections detected. The page might be empty or blocking access.</p>
+          <p>{STRINGS.PREVIEW.EMPTY_SECTIONS}</p>
         </div>
       )}
 
@@ -159,9 +160,10 @@ export default function PreviewCards({ url, sections, domStats, onExtract, onBac
           style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px 32px', fontSize: '1.1rem', boxShadow: '0 8px 32px rgba(16,185,129,0.3)' }}
         >
           {loading ? <Loader2 className="lucide-spin" size={24} /> : <Check size={24} />}
-          {loading ? 'Extracting...' : `Extract ${selectedIds.length > 0 ? selectedIds.length + ' Selected Sections' : 'Full Page'}`}
+          {loading ? STRINGS.PREVIEW.BUTTON_EXTRACTING : `${STRINGS.PREVIEW.BUTTON_EXTRACT_PREFIX}${selectedIds.length > 0 ? selectedIds.length + STRINGS.PREVIEW.SELECTED_SECTIONS_SUFFIX : STRINGS.PREVIEW.FULL_PAGE_LABEL}`}
         </button>
       </div>
     </div>
   );
 }
+
