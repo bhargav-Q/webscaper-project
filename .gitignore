@@ -15,5 +15,5 @@ __pycache__/
 .postman/
 postman/
 start.bat
-design.md
 final_design.md
+design.md
