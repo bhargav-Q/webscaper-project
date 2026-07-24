@@ -4,6 +4,8 @@ import PreviewCards from './components/PreviewCards';
 import ResultsDashboard from './components/ResultsDashboard';
 import './App.css';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 function App() {
   const [appState, setAppState] = useState('HERO'); // HERO, PREVIEW, RESULTS
   const [url, setUrl] = useState('');
@@ -16,7 +18,7 @@ function App() {
     setUrl(inputUrl);
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/preview', {
+      const response = await fetch(`${API_BASE_URL}/api/preview`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: inputUrl })
@@ -38,7 +40,7 @@ function App() {
   const handleExtract = async (selectedSections) => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/scrape', {
+      const response = await fetch(`${API_BASE_URL}/api/scrape`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

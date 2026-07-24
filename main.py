@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -8,10 +9,14 @@ from analyser import analyse_html, detect_dynamic_content, scan_sections, get_do
 # Create the FastAPI application
 app = FastAPI(title="Web Scraper API", version="2.0.0")
 
-# CORS Middleware: Allows React frontend (port 5173) to talk to this backend (port 8000)
+# CORS Middleware: Read allowed origins from environment variable or default to local dev
+allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:3000")
+allowed_origins = [origin.strip() for origin in allowed_origins_env.split(",") if origin.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=allowed_origins,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )

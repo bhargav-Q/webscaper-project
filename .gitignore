@@ -1,5 +1,7 @@
-# Security
+# Security & Environment
 .env
+.env.*
+!.env.example
 
 # Python
 .venv/
