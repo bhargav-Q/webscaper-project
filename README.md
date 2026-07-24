@@ -124,19 +124,30 @@ pip install -r requirements.txt
 
 #### Configure Environment Variables
 
-Create a `.env` file in the project root with your Bright Data API token:
+1. **Backend**: Create a `.env` file in the project root (or copy from `.env.example`):
 
 ```env
-BRIGHTDATA_API_TOKEN=your_bright_data_api_token_here
+# Backend Environment Variables
+BRIGHTDATA_API_TOKEN=your_brightdata_api_token_here
+ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
 ```
 
-> ⚠️ **Important:** Never commit your `.env` file. It is already included in `.gitignore`.
+> ⚠️ **Important:** Never commit your `.env` file. It is already included in `.gitignore`. A template file `.env.example` is committed for reference.
 
 ### 3. Frontend Setup (React)
 
 ```bash
 cd frontend
 npm install
+```
+
+#### Configure Frontend Environment Variables
+
+Create a `.env` file inside the `frontend/` directory (or copy from `frontend/.env.example`):
+
+```env
+# Frontend Environment Variables (Vite)
+VITE_API_BASE_URL=http://localhost:8000
 ```
 
 ---
@@ -214,23 +225,27 @@ curl -X POST http://localhost:8000/api/preview \
 
 ```
 webscaper-project-learning/
-├── .env                    # Bright Data API token (not committed)
+├── .env                    # Backend environment variables (not committed)
+├── .env.example            # Backend environment template (committed)
 ├── .gitignore              # Git ignore rules
 ├── requirements.txt        # Python dependencies
-├── main.py                 # FastAPI app — routes, CORS, caching
+├── main.py                 # FastAPI app — routes, dynamic CORS, caching
 ├── fetcher.py              # Bright Data API integration — page fetching
 ├── analyser.py             # HTML parsing — section scanning, data extraction
 ├── utils.py                # Utility functions (extensible)
 │
 └── frontend/               # React + Vite frontend
-    ├── package.json         # Node.js dependencies and scripts
-    ├── vite.config.js       # Vite configuration
-    ├── index.html           # HTML entry point
+    ├── .env                # Frontend environment variables (not committed)
+    ├── .env.example        # Frontend environment template (committed)
+    ├── .gitignore          # Frontend git ignore rules
+    ├── package.json        # Node.js dependencies and scripts
+    ├── vite.config.js      # Vite configuration
+    ├── index.html          # HTML entry point
     └── src/
-        ├── main.jsx         # React entry point
-        ├── App.jsx          # Main app — state management and routing
-        ├── App.css          # Application styles (glassmorphism dark theme)
-        ├── index.css        # Global styles and CSS variables
+        ├── main.jsx        # React entry point
+        ├── App.jsx         # Main app — dynamic API_BASE_URL, state routing
+        ├── App.css         # Application styles (glassmorphism dark theme)
+        ├── index.css       # Global styles and CSS variables
         └── components/
             ├── HeroSection.jsx       # URL input and landing page
             ├── PreviewCards.jsx      # Section preview and selection UI
