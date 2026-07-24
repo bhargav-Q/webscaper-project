@@ -2,12 +2,22 @@ import re
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from utils import DOMAnalyzer, EntityDetector
-
-# The structural tags that define major "sections" of a webpage
-SECTION_TAGS = ['header', 'nav', 'main', 'section', 'article', 'aside', 'footer', 'table']
+from constants import (
+    DEFAULT_COLUMN_PREFIX,
+    DEFAULT_FRAMEWORK,
+    DEFAULT_HTML_PARSER,
+    DEFAULT_PAGE_TITLE,
+    FALLBACK_SEARCH_TARGETS,
+    FRAMEWORK_DETECTION_RULES,
+    MAX_SECTION_PREVIEW_LEN,
+    SCRAPER_ID_ATTR,
+    SECTION_ID_PREFIX,
+    SECTION_TAGS,
+    TABLE_CELL_TAGS,
+)
 
 def get_dom_stats(html_text):
-    soup = BeautifulSoup(html_text, 'lxml')
+    soup = BeautifulSoup(html_text, DEFAULT_HTML_PARSER)
     analyzer = DOMAnalyzer(soup)
     return analyzer.get_stats()
 
@@ -18,18 +28,18 @@ def scan_sections(html_text):
     Scans the rendered HTML and identifies the major structural sections.
     Returns a list of section previews for the React frontend to display.
     """
-    soup = BeautifulSoup(html_text, 'lxml')
+    soup = BeautifulSoup(html_text, DEFAULT_HTML_PARSER)
     sections = []
     section_index = 0
 
     # 1. Look for semantic HTML5 elements (header, nav, main, section, etc.)
     for tag in soup.find_all(SECTION_TAGS):
-        preview_text = tag.get_text(separator=' ', strip=True)[:150]
+        preview_text = tag.get_text(separator=' ', strip=True)[:MAX_SECTION_PREVIEW_LEN]
         if not preview_text:
             continue
 
-        section_id = f"section-{section_index}"
-        tag['data-scraper-id'] = section_id
+        section_id = f"{SECTION_ID_PREFIX}{section_index}"
+        tag[SCRAPER_ID_ATTR] = section_id
         
         sections.append({
             "section_id": section_id,
@@ -45,12 +55,12 @@ def scan_sections(html_text):
     grid_nodes = analyzer.find_grids()
     
     for tag in grid_nodes:
-        if 'data-scraper-id' in tag.attrs:
+        if SCRAPER_ID_ATTR in tag.attrs:
             continue # Already added
             
-        preview_text = tag.get_text(separator=' ', strip=True)[:150]
-        section_id = f"section-{section_index}"
-        tag['data-scraper-id'] = section_id
+        preview_text = tag.get_text(separator=' ', strip=True)[:MAX_SECTION_PREVIEW_LEN]
+        section_id = f"{SECTION_ID_PREFIX}{section_index}"
+        tag[SCRAPER_ID_ATTR] = section_id
         
         sections.append({
             "section_id": section_id,
@@ -71,7 +81,7 @@ def _find_section_element(soup, section_info):
     """
     section_id = section_info.get("section_id")
     if section_id:
-        return soup.find(attrs={"data-scraper-id": section_id})
+        return soup.find(attrs={SCRAPER_ID_ATTR: section_id})
     return None
 
 
@@ -80,10 +90,10 @@ def analyse_html(base_url, html_text, selected_sections=None):
     Step 2 of the Two-Step Flow.
     Extracts data in a Relational (Grouped) format based on selected sections.
     """
-    soup = BeautifulSoup(html_text, 'lxml')
+    soup = BeautifulSoup(html_text, DEFAULT_HTML_PARSER)
 
     # Page Title (always from the full page)
-    title = soup.title.text.strip() if soup.title else "No Title"
+    title = soup.title.text.strip() if soup.title else DEFAULT_PAGE_TITLE
 
     # Determine which parts of the page to search
     if selected_sections:
@@ -94,10 +104,10 @@ def analyse_html(base_url, html_text, selected_sections=None):
             if element:
                 search_targets.append(element)
     else:
-        # If no sections selected, try to find articles, otherwise just use the body
-        search_targets = soup.find_all('article')
+        # If no sections selected, try fallback search targets (e.g. articles or body)
+        search_targets = soup.find_all(FALLBACK_SEARCH_TARGETS[0])
         if not search_targets:
-            search_targets = [soup.find('body') or soup]
+            search_targets = [soup.find(FALLBACK_SEARCH_TARGETS[1]) or soup]
 
     # Extract relational records from the target elements
     records = []
@@ -108,14 +118,14 @@ def analyse_html(base_url, html_text, selected_sections=None):
         if target.name == 'table':
             headers = [th.get_text(strip=True) for th in target.find_all('th')]
             for tr in target.find_all('tr'):
-                cells = tr.find_all(['td', 'th'])
+                cells = tr.find_all(TABLE_CELL_TAGS)
                 # Skip header-only rows
                 if not cells or all(c.name == 'th' for c in cells): 
                     continue 
                 
                 record = {}
                 for i, cell in enumerate(cells):
-                    key = headers[i] if i < len(headers) and headers[i] else f"Column {i+1}"
+                    key = headers[i] if i < len(headers) and headers[i] else f"{DEFAULT_COLUMN_PREFIX} {i+1}"
                     record[key] = cell.get_text(strip=True)
                 
                 if any(record.values()):
@@ -141,14 +151,8 @@ def analyse_html(base_url, html_text, selected_sections=None):
 
 
 def detect_dynamic_content(html_text):
-    if 'id="root"' in html_text or '__NEXT_DATA__' in html_text:
-        return "Built with React"
+    for signatures, framework_name in FRAMEWORK_DETECTION_RULES:
+        if any(sig in html_text for sig in signatures):
+            return framework_name
+    return DEFAULT_FRAMEWORK
 
-    elif 'id="app"' in html_text or 'data-v-' in html_text:
-        return "Built with Vue"
-
-    elif 'ng-version' in html_text:
-        return "Built with Angular"
-
-    else:
-        return "Static or unknown framework"

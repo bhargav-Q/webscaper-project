@@ -1,50 +1,49 @@
-import os
+import logging
 import requests
-from dotenv import load_dotenv
+import config
+from constants import DEFAULT_SCHEME, SUPPORTED_SCHEMES
 
-# Load the .env file
-load_dotenv()
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def get_url():
     url = input("Enter the URL: ").strip()
-    if url.startswith("http://") or url.startswith("https://"): 
+    if any(url.startswith(scheme) for scheme in SUPPORTED_SCHEMES): 
         return url
-    return "https://" + url 
+    return DEFAULT_SCHEME + url 
 
 def fetch_page(url):
-    # Fetch your exact API token from the .env file
-    brightdata_token = os.getenv("BRIGHTDATA_API_TOKEN")
-    
-    # 1. The Bright Data API Endpoint
-    api_url = "https://api.brightdata.com/request"
+    # Fetch Bright Data API credentials and settings from config
+    brightdata_token = config.BRIGHTDATA_API_TOKEN
+    api_url = config.BRIGHTDATA_API_URL
 
-    # 2. The Headers (telling them who you are)
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {brightdata_token}"
     }
 
-    # 3. The Payload (telling them what to scrape)
     payload = {
-        "zone": "web_unlocker1",
+        "zone": config.BRIGHTDATA_ZONE,
         "url": url,
-        "format": "raw"
+        "format": config.DEFAULT_PAYLOAD_FORMAT
     }
 
     try:
-        # Notice this is a POST request now!
         response = requests.post(
             api_url, 
             headers=headers, 
             json=payload, 
-            timeout=60  # JS rendering can take 30-60 seconds
+            timeout=config.BRIGHTDATA_REQUEST_TIMEOUT
         )
-        response.encoding = 'utf-8' # Force utf-8 encoding to fix £ symbol errors
+        response.encoding = config.DEFAULT_CHARSET
         return response
     except requests.exceptions.RequestException as e:
-        print(f"Error fetching page: {e}")
+        logger.error("Error fetching page: %s", e)
         return None
         
 def display_response_info(response):
-    print(f'status_code: {response.status_code}')
-    print(f'content_length: {len(response.content)} bytes')
+    if response:
+        logger.info("status_code: %s", response.status_code)
+        logger.info("content_length: %s bytes", len(response.content))
+

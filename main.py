@@ -5,17 +5,16 @@ from pydantic import BaseModel
 from typing import Optional
 from fetcher import fetch_page
 from analyser import analyse_html, detect_dynamic_content, scan_sections, get_dom_stats
+import config
+from constants import DEFAULT_HTML_PARSER, DEFAULT_PAGE_TITLE, DEFAULT_SCHEME, SUPPORTED_SCHEMES
 
 # Create the FastAPI application
-app = FastAPI(title="Web Scraper API", version="2.0.0")
+app = FastAPI(title=config.APP_TITLE, version=config.APP_VERSION)
 
-# CORS Middleware: Read allowed origins from environment variable or default to local dev
-allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:3000")
-allowed_origins = [origin.strip() for origin in allowed_origins_env.split(",") if origin.strip()]
-
+# CORS Middleware: Read allowed origins from environment config
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origins=config.ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -40,7 +39,7 @@ class ScrapeRequest(BaseModel):
 # Health check
 @app.get("/api/health")
 def health_check():
-    return {"status": "ok", "message": "Web Scraper API is running!"}
+    return {"status": "ok", "message": f"{config.APP_TITLE} is running!"}
 
 
 # Step 1: Preview — Fetch page and return section previews
@@ -49,8 +48,8 @@ def preview_website(request: PreviewRequest):
     url = request.url
 
     # Ensure the URL has a protocol
-    if not url.startswith("http://") and not url.startswith("https://"):
-        url = "https://" + url
+    if not any(url.startswith(scheme) for scheme in SUPPORTED_SCHEMES):
+        url = DEFAULT_SCHEME + url
 
     # Fetch the page using Bright Data (with JS rendering)
     response = fetch_page(url)
@@ -71,8 +70,8 @@ def preview_website(request: PreviewRequest):
 
     # Get the page title
     from bs4 import BeautifulSoup
-    soup = BeautifulSoup(response.text, 'lxml')
-    title = soup.title.text.strip() if soup.title else "No Title"
+    soup = BeautifulSoup(response.text, DEFAULT_HTML_PARSER)
+    title = soup.title.text.strip() if soup.title else DEFAULT_PAGE_TITLE
     
     # Get DOM stats
     dom_stats = get_dom_stats(response.text)
@@ -92,8 +91,8 @@ def preview_website(request: PreviewRequest):
 def scrape_website(request: ScrapeRequest):
     url = request.url
 
-    if not url.startswith("http://") and not url.startswith("https://"):
-        url = "https://" + url
+    if not any(url.startswith(scheme) for scheme in SUPPORTED_SCHEMES):
+        url = DEFAULT_SCHEME + url
 
     # Try to use cached HTML first (saves Bright Data credits!)
     if url in html_cache:
