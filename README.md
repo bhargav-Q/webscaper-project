@@ -1,315 +1,144 @@
-# 🌐 Quantana — Enterprise Web Extraction System
+# Web Scraper Project
 
-A full-stack web scraping application that combines a **FastAPI** backend with a **React (Vite)** frontend to deliver a powerful two-step extraction workflow. Quantana leverages the [Bright Data Web Unlocker API](https://brightdata.com/) to fetch and render JavaScript-heavy pages, then uses **BeautifulSoup** to intelligently parse and extract structured data — all through a sleek, dark-themed dashboard.
+A full-stack web application for structural preview and selective web scraping. It uses FastAPI and BeautifulSoup on the backend to parse dynamic web pages fetched via the Bright Data Web Unlocker API, and React (Vite) on the frontend for visual section selection and structured data display.
 
-> **Why Quantana?** Most scrapers blindly dump an entire page. Quantana lets you **preview** a website's structural sections first, **select** only the parts you care about, and then **extract** clean, structured data — saving time, bandwidth, and API credits.
+## What It Does
 
----
-
-## 📑 Table of Contents
-
-- [Features](#-features)
-- [Architecture Overview](#-architecture-overview)
-- [Prerequisites and Dependencies](#-prerequisites-and-dependencies)
-- [Installation and Setup](#-installation-and-setup)
-  - [1. Clone the Repository](#1-clone-the-repository)
-  - [2. Backend Setup (Python)](#2-backend-setup-python)
-  - [3. Frontend Setup (React)](#3-frontend-setup-react)
-- [Usage](#-usage)
-  - [Running the Application](#running-the-application)
-  - [Two-Step Extraction Workflow](#two-step-extraction-workflow)
-  - [API Endpoints](#api-endpoints)
-- [Project Structure](#-project-structure)
-- [Contributing](#-contributing)
-- [License and Credits](#-license-and-credits)
+The application splits web scraping into a two-step flow:
+1. **Target Identification (Preview)**: Fetches dynamic HTML, parses structural elements and repeated DOM signatures into discrete section cards, and computes page DOM statistics.
+2. **Selective Extraction (Scrape)**: Isolates user-selected sections and applies heuristic entity detectors (prices, emails, phone numbers, links, titles, metadata) or tabular parsers to extract relational records.
 
 ---
 
-## ✨ Features
+## Setup & Local Execution
 
-- **Two-Step Extraction Flow** — Preview page sections before scraping, so you only extract what matters.
-- **Bright Data Integration** — Fetches pages through the Bright Data Web Unlocker API with full JavaScript rendering support.
-- **Smart Section Detection** — Automatically identifies semantic HTML5 sections (`<header>`, `<nav>`, `<main>`, `<section>`, `<article>`, `<footer>`) with a fallback to structural `<div>` analysis.
-- **Framework Detection** — Detects whether the target site is built with React, Vue, Angular, or is static HTML.
-- **Structured Data Extraction** — Extracts headings, links, images, paragraphs, and email addresses into clean, tabulated data.
-- **CSV Export** — One-click export of any extracted data category to CSV format.
-- **HTML Caching** — Caches fetched HTML in-memory to avoid redundant API calls and save Bright Data credits.
-- **Modern React Dashboard** — A glassmorphism-styled dark UI built with React 19, Vite 8, and Lucide icons.
-- **RESTful API** — Clean FastAPI backend with CORS support, ready for integration with any frontend or automation tool.
+### Prerequisites
+* Python 3.10+
+* Node.js 18+ and npm
 
----
-
-## 🏗 Architecture Overview
-
-```
-┌─────────────────────────┐         ┌─────────────────────────┐
-│     React Frontend      │  HTTP   │     FastAPI Backend      │
-│    (Vite · Port 5173)   │◄───────►│     (Uvicorn · Port 8000)│
-│                         │         │                         │
-│  HeroSection            │         │  /api/health            │
-│  PreviewCards            │         │  /api/preview           │
-│  ResultsDashboard        │         │  /api/scrape            │
-└─────────────────────────┘         └────────┬────────────────┘
-                                             │
-                                             │ HTTPS
-                                             ▼
-                                   ┌─────────────────────┐
-                                   │  Bright Data API     │
-                                   │  (Web Unlocker)      │
-                                   └─────────────────────┘
-```
-
----
-
-## 📋 Prerequisites and Dependencies
-
-Before setting up Quantana, ensure you have the following installed:
-
-| Requirement | Version | Purpose |
-|---|---|---|
-| **Python** | 3.8+ | Backend runtime |
-| **Node.js** | 18+ | Frontend build tooling |
-| **npm** | 9+ | Package management for frontend |
-| **Git** | Any | Cloning the repository |
-| **Bright Data Account** | — | Required for the Web Unlocker API token |
-
-### Key Backend Libraries
-
-| Library | Purpose |
-|---|---|
-| `fastapi` | Web framework for the REST API |
-| `uvicorn` | ASGI server to run FastAPI |
-| `beautifulsoup4` + `lxml` | HTML parsing and data extraction |
-| `requests` | HTTP client for Bright Data API calls |
-| `python-dotenv` | Loads environment variables from `.env` |
-| `pydantic` | Request/response data validation |
-
-### Key Frontend Libraries
-
-| Library | Purpose |
-|---|---|
-| `react` (v19) | UI component library |
-| `vite` (v8) | Build tool and dev server |
-| `lucide-react` | Icon library |
-
----
-
-## 🚀 Installation and Setup
-
-### 1. Clone the Repository
+### 1. Backend Setup
 
 ```bash
-git clone https://github.com/<your-username>/webscaper-project-learning.git
-cd webscaper-project-learning
-```
-
-### 2. Backend Setup (Python)
-
-Create and activate a virtual environment, then install dependencies:
-
-```bash
-# Create virtual environment
+# Create and activate virtual environment
 python -m venv .venv
 
-# Activate it
-# Windows (PowerShell)
+# Windows (PowerShell):
 .venv\Scripts\Activate.ps1
-
-# macOS / Linux
+# Linux/macOS:
 source .venv/bin/activate
 
 # Install Python dependencies
 pip install -r requirements.txt
+
+# Create .env from template
+cp .env.example .env
 ```
 
-#### Configure Environment Variables
-
-1. **Backend**: Create a `.env` file in the project root (or copy from `.env.example`):
-
-```env
-# Backend Environment Variables
-BRIGHTDATA_API_TOKEN=your_brightdata_api_token_here
-ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
-```
-
-> ⚠️ **Important:** Never commit your `.env` file. It is already included in `.gitignore`. A template file `.env.example` is committed for reference.
-
-### 3. Frontend Setup (React)
-
+Start the FastAPI server:
 ```bash
-cd frontend
-npm install
-```
-
-#### Configure Frontend Environment Variables
-
-Create a `.env` file inside the `frontend/` directory (or copy from `frontend/.env.example`):
-
-```env
-# Frontend Environment Variables (Vite)
-VITE_API_BASE_URL=http://localhost:8000
-```
-
----
-
-## 💡 Usage
-
-### Running the Application
-
-You need **two terminal windows** — one for the backend and one for the frontend.
-
-**Terminal 1 — Start the Backend:**
-
-```bash
-# From the project root
 uvicorn main:app --reload --port 8000
 ```
+Backend runs at `http://localhost:8000`. Interactive API documentation is available at `http://localhost:8000/docs`.
 
-**Terminal 2 — Start the Frontend:**
+### 2. Frontend Setup
 
 ```bash
-# From the frontend/ directory
 cd frontend
+
+# Install Node dependencies
+npm install
+
+# Create frontend .env from template
+cp .env.example .env
+```
+
+Start the Vite development server:
+```bash
 npm run dev
 ```
-
-The frontend will be available at **http://localhost:5173** and the backend API at **http://localhost:8000**.
-
-### Two-Step Extraction Workflow
-
-1. **Enter a URL** — Type any website URL into the search bar on the hero screen and click **"Analyze URL"**.
-2. **Preview Sections** — Quantana fetches the page via Bright Data, identifies structural sections, and displays them as selectable cards. Each card shows the HTML tag, class name, and a text preview.
-3. **Select & Extract** — Check the sections you want to extract (or leave all unchecked to extract the full page), then click **"Extract"**.
-4. **View Results** — Browse the extracted data (headings, links, images, paragraphs, emails) in a tabbed dashboard.
-5. **Export to CSV** — Click the **"Export"** button to download the currently active tab's data as a CSV file.
-
-### API Endpoints
-
-| Method | Endpoint | Description | Request Body |
-|---|---|---|---|
-| `GET` | `/api/health` | Health check | — |
-| `POST` | `/api/preview` | Fetch a page and return section previews | `{ "url": "https://example.com" }` |
-| `POST` | `/api/scrape` | Extract data from selected sections | `{ "url": "https://example.com", "selected_sections": [...] }` |
-
-**Example — Preview a website:**
-
-```bash
-curl -X POST http://localhost:8000/api/preview \
-  -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com"}'
-```
-
-**Example Response (Preview):**
-
-```json
-{
-  "success": true,
-  "url": "https://example.com",
-  "title": "Example Domain",
-  "framework": "Static or unknown framework",
-  "sections": [
-    {
-      "section_id": "section-0",
-      "tag": "header",
-      "class": "",
-      "id": "",
-      "preview": "Example Domain This domain is for use in illustrative examples..."
-    }
-  ]
-}
-```
+Frontend runs at `http://localhost:5173`.
 
 ---
 
-## 📁 Project Structure
+## Environment Variables
+
+All environment variables must be defined in `.env` files (see `.env.example` in root and `/frontend`). Never commit real credential values.
+
+| Variable Name | Location | Description |
+| :--- | :--- | :--- |
+| `BRIGHTDATA_API_TOKEN` | Backend `.env` | API token for Bright Data Web Unlocker authentication. |
+| `BRIGHTDATA_API_URL` | Backend `.env` | Endpoint URL for Bright Data request proxy (default: `https://api.brightdata.com/request`). |
+| `BRIGHTDATA_ZONE` | Backend `.env` | Zone name configured in Bright Data dashboard (default: `web_unlocker1`). |
+| `BRIGHTDATA_REQUEST_TIMEOUT` | Backend `.env` | Request timeout in seconds for web fetching operations (default: `180`). |
+| `ALLOWED_ORIGINS` | Backend `.env` | Comma-separated list of allowed CORS origins for FastAPI middleware. |
+| `VITE_API_BASE_URL` | Frontend `.env` | Base URL of the backend FastAPI service (default: `http://localhost:8000`). |
+
+---
+
+## Running Tests & Linters
+
+* **Backend Tests**: Run `pytest` (when test files in `tests/` are present).
+* **Frontend Linter**: Run `npm run lint` inside `/frontend` to execute `oxlint`.
+
+---
+
+## Project Structure
 
 ```
 webscaper-project-learning/
-├── .env                    # Backend environment variables (not committed)
-├── .env.example            # Backend environment template (committed)
-├── .gitignore              # Git ignore rules
-├── requirements.txt        # Python dependencies
-├── main.py                 # FastAPI app — routes, dynamic CORS, caching
-├── fetcher.py              # Bright Data API integration — page fetching
-├── analyser.py             # HTML parsing — section scanning, data extraction
-├── utils.py                # Utility functions (extensible)
-│
-└── frontend/               # React + Vite frontend
-    ├── .env                # Frontend environment variables (not committed)
-    ├── .env.example        # Frontend environment template (committed)
-    ├── .gitignore          # Frontend git ignore rules
-    ├── package.json        # Node.js dependencies and scripts
-    ├── vite.config.js      # Vite configuration
-    ├── index.html          # HTML entry point
-    └── src/
-        ├── main.jsx        # React entry point
-        ├── App.jsx         # Main app — dynamic API_BASE_URL, state routing
-        ├── App.css         # Application styles (glassmorphism dark theme)
-        ├── index.css       # Global styles and CSS variables
-        └── components/
-            ├── HeroSection.jsx       # URL input and landing page
-            ├── PreviewCards.jsx      # Section preview and selection UI
-            └── ResultsDashboard.jsx  # Tabbed data display and CSV export
+├── main.py              # FastAPI application, CORS, endpoints & in-memory cache
+├── analyser.py          # Section scanning (semantic/grid) & relational HTML extraction
+├── fetcher.py           # Bright Data API request wrapper
+├── utils.py             # DOM signature hashing (DOMAnalyzer) & entity regex detectors
+├── config.py            # Environment configuration loader
+├── constants.py         # Parsing rules, regex patterns, and default parameters
+├── requirements.txt     # Backend Python dependencies
+├── .env.example         # Template for backend environment variables
+└── frontend/            # React (Vite) frontend
+    ├── src/
+    │   ├── App.jsx      # Core workflow state & screen manager
+    │   ├── api/         # Axios/Fetch API service abstraction (scraperService.js)
+    │   ├── components/  # HeroSection, PreviewCards, ResultsDashboard UI components
+    │   └── constants/   # UI strings, data rules, app configurations
+    └── package.json     # Frontend dependencies & scripts
 ```
 
 ---
 
-## 🤝 Contributing
+## Architecture & Data Flow
 
-Contributions are welcome! Here's how you can help:
+```
+[ User UI (React) ] ──(1) POST /api/preview ──> [ FastAPI (main.py) ]
+                                                        │
+                                                        ▼
+                                                [ Bright Data API ]
+                                                        │
+                                                        ▼ (Raw Rendered HTML)
+                                                [ scan_sections ]
+                                                        │
+  [ React State ] <── (2) Preview Cards & Stats ────────┤ (Injects data-scraper-id)
+         │                                              │
+         │                                              ▼
+         └──────────(3) POST /api/scrape ────────> [ html_cache[url] ]
+                        (Selected Sections)             │
+                                                        ▼
+                                                [ analyse_html ]
+                                                        │
+  [ User UI ] <──── (4) Relational JSON Data ───────────┘ (Entity & Table Parsing)
+```
 
-1. **Fork** this repository
-2. **Create a feature branch:**
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-3. **Make your changes** and commit with descriptive messages:
-   ```bash
-   git commit -m "Add: description of your change"
-   ```
-4. **Push** to your fork:
-   ```bash
-   git push origin feature/your-feature-name
-   ```
-5. **Open a Pull Request** with a clear description of what you changed and why.
-
-### Guidelines
-
-- Follow the existing code style and project structure.
-- Test your changes with both the frontend and backend running.
-- Update documentation if your change affects usage or setup.
-- Keep pull requests focused — one feature or fix per PR.
-
-### Reporting Issues
-
-Found a bug or have a feature request? [Open an issue](https://github.com/<your-username>/webscaper-project-learning/issues) with:
-- A clear title and description
-- Steps to reproduce (for bugs)
-- Expected vs. actual behavior
+1. **Preview Phase**: Client posts target URL to `/api/preview`. Backend fetches dynamic HTML via Bright Data, scans for semantic tags (`<header>`, `<main>`, `<section>`) and structural grid repeats using `DOMAnalyzer`, injects synthetic `data-scraper-id` attributes, stores annotated HTML in `html_cache[url]`, and returns section cards with DOM stats.
+2. **Scrape Phase**: Client selects section IDs and posts to `/api/scrape`. Backend looks up `html_cache[url]`, isolates selected section sub-trees using `data-scraper-id`, extracts tabular structures or regular expression entities (`EntityDetector`), and returns formatted JSON records.
 
 ---
 
-## 📜 License and Credits
+## Gotchas & Engineering Decisions Log
 
-### License
+1. **Synthetic ID Injection (`data-scraper-id`)**:
+   * *Problem*: Scraped pages often lack standard `id` or `class` attributes on structural containers, making section targeting unreliable.
+   * *Decision*: During the preview phase, `scan_sections()` mutates the in-memory BeautifulSoup tree to inject synthetic `data-scraper-id="sec_0"`, `sec_1` attributes into target nodes before stringifying and caching the HTML.
 
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
-
-### Credits & Acknowledgements
-
-| Resource | Role |
-|---|---|
-| [FastAPI](https://fastapi.tiangolo.com/) | Backend web framework |
-| [React](https://react.dev/) | Frontend UI library |
-| [Vite](https://vite.dev/) | Frontend build tool and dev server |
-| [Bright Data](https://brightdata.com/) | Web Unlocker API for page fetching with JS rendering |
-| [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/) | HTML parsing and extraction |
-| [lxml](https://lxml.de/) | High-performance HTML/XML parser |
-| [Lucide React](https://lucide.dev/) | Icon set for the frontend UI |
-| [Uvicorn](https://www.uvicorn.org/) | Lightning-fast ASGI server |
-
----
-
-<p align="center">
-  Built with ☕ and curiosity — <strong>Quantana</strong> © 2026
-</p>
+2. **In-Memory Credit Saving Cache (`html_cache`)**:
+   * *Problem*: Fetching pages through Bright Data consumes API credits per request. Repeating requests for preview and scrape would double API costs.
+   * *Decision*: Raw annotated HTML is cached in a global dictionary keyed by URL during preview. `/api/scrape` reuses the cached tree.
+   * *Known Trade-off / Landmine*: `html_cache` is an un-bounded in-memory Python dictionary without TTL/eviction. If the backend process restarts between Preview and Scrape steps, `/api/scrape` falls back to a fresh fetch without annotated IDs, returning empty section matches.
