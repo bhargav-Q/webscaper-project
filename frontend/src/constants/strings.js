@@ -14,6 +14,7 @@ export const STRINGS = {
     SEARCH_PLACEHOLDER: "Search targets...",
     SELECT_ALL: "Select All",
     DESELECT_ALL: "Deselect All",
+    SCROLL_TO_BOTTOM: "Scroll to Bottom",
     EMPTY_SECTIONS: "No clear semantic sections detected. The page might be empty or blocking access.",
     BUTTON_EXTRACTING: "Extracting...",
     BUTTON_EXTRACT_PREFIX: "Extract ",

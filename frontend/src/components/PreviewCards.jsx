@@ -1,10 +1,19 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Check, Layers, Loader2 } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { ArrowDown, ArrowLeft, Check, Layers, Loader2 } from 'lucide-react';
 import { STRINGS } from '../constants/strings';
 
 export default function PreviewCards({ url, sections, domStats, onExtract, onBack, loading }) {
   const [selectedIds, setSelectedIds] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const bottomRef = useRef(null);
+
+  const scrollToBottom = () => {
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+  };
 
   const filteredSections = sections.filter(sec => {
     const term = searchTerm.toLowerCase();
@@ -152,7 +161,7 @@ export default function PreviewCards({ url, sections, domStats, onExtract, onBac
       )}
 
       {/* Floating Action Button */}
-      <div style={{ position: 'fixed', bottom: '40px', left: '50%', transform: 'translateX(-50%)', zIndex: 100 }}>
+      <div ref={bottomRef} style={{ position: 'fixed', bottom: '40px', left: '50%', transform: 'translateX(-50%)', zIndex: 100 }}>
         <button 
           className="btn-primary" 
           onClick={handleExtract}

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ArrowDown } from 'lucide-react';
 import HeroSection from './components/HeroSection';
 import PreviewCards from './components/PreviewCards';
 import ResultsDashboard from './components/ResultsDashboard';
@@ -59,6 +60,13 @@ function App() {
     setReport(null);
   };
 
+  const scrollToBottom = () => {
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: 'smooth'
+    });
+  };
+
   return (
     <>
       <div className="ambient-bg"></div>
@@ -90,6 +98,21 @@ function App() {
           />
         )}
       </main>
+
+      {/* Chatbot-style Floating Scroll Button (Only visible in Preview and Results screens) */}
+      {(appState === APP_STATES.PREVIEW || appState === APP_STATES.RESULTS) && (
+        <div className="chatbot-float-wrapper">
+          <span className="chatbot-tooltip">{STRINGS.PREVIEW.SCROLL_TO_BOTTOM || 'Scroll to Bottom'}</span>
+          <button 
+            className="chatbot-btn" 
+            onClick={scrollToBottom}
+            title="Scroll to Bottom"
+            aria-label="Scroll to Bottom"
+          >
+            <ArrowDown size={24} />
+          </button>
+        </div>
+      )}
     </>
   );
 }
